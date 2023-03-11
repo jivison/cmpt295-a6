@@ -119,6 +119,7 @@ rColLoop:
     
     movl %esi, %eax # N -> eax
     subl %ecx, %eax # Subtract the current index from the total columns, getting the column to swap with
+    decl %eax       # Accounting for index being Length - 1 
 
     xorl %r8d, %r8d
 
@@ -132,7 +133,7 @@ rSwap:
     # k = %r8d
 
     # Calculate A[k] -> rdx
-    movl %ecx, %r9d             # k -> r9
+    movl %r8d, %r9d             # k -> r9
     imulq %rsi, %r9             # k * N -> r9
     leaq (%rdi, %r9), %rdx      # A + (k * N) {A[k]} -> rdx
      
