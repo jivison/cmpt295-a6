@@ -50,11 +50,8 @@ doneWithRows:                  # bye! bye!
 #####################
     .globl transpose
 transpose:
-# A in %rdi, N in %rsi
-
-# for n = 0 to N - 1
-#     for m = n + 1 to N
-#         swap A(n,m) with A(m,n)
+    # A in %rdi
+    # N in %rsi
 
 # Set up registers
     xorl %eax, %eax            # set %eax to 0
@@ -64,32 +61,13 @@ transpose:
 tRowLoop:
     movl %ecx, %r8d            # j = i (column index j in %r8d)
     incl %r8d
-    cmpl %edx, %ecx            # while i < N (i - N < 0)
+    cmpl %esi, %ecx            # while i < N (i - N < 0)
     jge tDoneWithRows
 
 # For each cell of this row
 tColLoop:
-    cmpl %edx, %r8d            # while j < N (j - N < 0)
+    cmpl %esi, %r8d            # while j < N (j - N < 0)
     jge tDoneWithCells
-
-# WORKING SWAP CODE
-# 
-# %ecx = i
-# %r8d = j
-#
-# movl %ecx, %r9d
-# imulq %rsi, %r9
-# leaq (%rdi, %r9), %rdx
-#
-# movl %r8d, %r10d
-# imulq %rsi, %r10
-# leaq (%rdi, %r10), %r12
-#
-# movb (%rdx, %r8), %r11b
-# movb (%r12, %rcx), %r13b
-#
-# movb %r11b, (%r12, %rcx)
-# movb %r13b, (%rdx, %r8)
 
     # Calculate A[i] -> rdx
     movl %ecx, %r9d             # i -> r9
@@ -114,15 +92,63 @@ tColLoop:
 # Go to next row
 tDoneWithCells:
     incl %ecx                  # i++ (row index in %ecx)
-    jmp rowLoop                # go to next row
+    jmp tRowLoop                # go to next row
 
 tDoneWithRows:                  # bye! bye!
     ret
 
 
-#####################
+
+
 	.globl	reverseColumns
 reverseColumns:
+    # A in %rdi
+    # N in %rsi
 
+    xorl %eax, %eax         # set %eax to 0
+    xorl %ecx, %ecx         # i = 0 (column index i is in %ecx)
+    
 
+rColLoop:    
+    # Compare the index to half the number of columns to process
+    movl %esi, %r8d
+    idivl $2, %r8d
+    cmpl %r8d, %ecx
+    jge rDoneWithCols
+    
+    movl %esi, %eax # N -> eax
+    subl %ecx, %eax # Subtract the current index from the total columns, getting the column to swap with
+
+    xorl %r8d, %r8d
+
+rSwap:
+    cmpl %esi, %r8d
+    jge rDoneWithSwap
+
+    # Swap A[k][i] with A[k][j]
+    # i = %ecx (current index)
+    # j = %eax
+    # k = %r8d
+
+    # Calculate A[k] -> rdx
+    movl %ecx, %r9d             # k -> r9
+    imulq %rsi, %r9             # k * N -> r9
+    leaq (%rdi, %r9), %rdx      # A + (k * N) {A[k]} -> rdx
+     
+    # Swap A[k][i] with A[k][j]
+    movb (%rdx, %rcx), %r11b    # A[k][i] -> r11
+    movb (%rdx, %rax), %r13b    # A[k][j] -> r13
+
+    movb %r11b, (%rdx, %rax)    # r11 -> A[k][j]
+    movb %r13b, (%rdx, %rcx)    # r13 -> A[k][i]
+
+    incl %r8d
+    jmp rSwap
+    
+rDoneWithSwap:
+    jmp rColLoop
+
+rDoneWithCols:
 	ret
+
+
