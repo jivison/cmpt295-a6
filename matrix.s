@@ -108,12 +108,13 @@ reverseColumns:
     xorl %eax, %eax         # set %eax to 0
     xorl %ecx, %ecx         # i = 0 (column index i is in %ecx)
     
-
+    
 rColLoop:    
-    # Compare the index to half the number of columns to process
-    movl %esi, %r8d
-    idivl $2, %r8d
-    cmpl %r8d, %ecx
+    # Jump if half the table has been swapped
+    movl %ecx, %r8d
+    imull $2, %r8d
+    incl %r8d
+    cmpl %esi, %r8d
     jge rDoneWithCols
     
     movl %esi, %eax # N -> eax
@@ -146,6 +147,7 @@ rSwap:
     jmp rSwap
     
 rDoneWithSwap:
+    incl %ecx
     jmp rColLoop
 
 rDoneWithCols:
