@@ -62,7 +62,7 @@ transpose:
 
 # For each row
 tRowLoop:
-    movl %ecx, %r8d            # j = 0 (column index j in %r8d)
+    movl %ecx, %r8d            # j = i (column index j in %r8d)
     incl %r8d
     cmpl %edx, %ecx            # while i < N (i - N < 0)
     jge tDoneWithRows
@@ -72,22 +72,41 @@ tColLoop:
     cmpl %edx, %r8d            # while j < N (j - N < 0)
     jge tDoneWithCells
 
+# WORKING SWAP CODE
+# 
+# %ecx = i
+# %r8d = j
+#
+# movl %ecx, %r9d
+# imulq %rsi, %r9
+# leaq (%rdi, %r9), %rdx
+#
+# movl %r8d, %r10d
+# imulq %rsi, %r10
+# leaq (%rdi, %r10), %r12
+#
+# movb (%rdx, %r8), %r11b
+# movb (%r12, %rcx), %r13b
+#
+# movb %r11b, (%r12, %rcx)
+# movb %r13b, (%rdx, %r8)
 
-    # Get A[i][j] into %r10
-    movl %ecx, %r9d              # i -> %r9
-    imulq %rsi, %r9             # N * i -> %r9
-    leaq (%rdi, %r9), %rdx      # A + (N * i) -> %rax
+    # Calculate A[i] -> rdx
+    movl %ecx, %r9d             # i -> r9
+    imulq %rsi, %r9             # i * N -> r9
+    leaq (%rdi, %r9), %rdx      # A + (i * N) -> rdx
     
-    # Get A[j][i] into %r11
-    movl %r8d, %r9d             # j -> %r9
-    imulq %rsi, %r9             # N * j -> %r9
-    leaq (%rdi, %r9), %r12      # A + (N * j) -> %rax
+    # Calculate A[j] -> r12
+    movl %r8d, %r10d            # j -> r10
+    imulq %rsi, %r10            # j * N -> r10
+    leaq (%rdi, %r10), %r12     # A + (j * N) -> r12
 
-    # Swap A[i][j] (%r10) with A[j][i] (%r11)
-    movq (%r12, %rsi), %r9
-    movq (%rdx, %r8), %r10
-    movq %r10, (%r12, %rsi)
-    movq %r9, (%rdx, %r8)
+    # Swap A[i][j] with A[j][i]
+    movb (%rdx, %r8), %r11b     # A[i][j] -> r11
+    movb (%r12, %rcx), %r13b    # A[j][i] -> r13
+
+    movb %r11b, (%r12, %rcx)    # r11 -> A[j][i]
+    movb %r13b, (%rdx, %r8)     # r13 -> A[i][j]
 
     incl %r8d                   # j++ (column index in %r8d)
     jmp tColLoop                # go to next cell

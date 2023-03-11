@@ -1,6 +1,6 @@
 SFLAGS = -S -O2
 OFLAGS = -g -c
-CFLAGS = -o ma -target x86_64-apple-darwin
+CFLAGS = -o ma
 
 ma: main.o matrix.o
 	gcc $(CFLAGS) matrix.o main.o
