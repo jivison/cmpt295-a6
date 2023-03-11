@@ -1,3 +1,9 @@
+# Filename: matrix.s
+# Author: Anne Lavergne, John Ivison (301474639)
+# Date: March 10th, 2023
+#
+
+
     .globl copy
 # ***** Version 2 *****
 copy:
@@ -50,6 +56,9 @@ doneWithRows:                  # bye! bye!
 #####################
     .globl transpose
 transpose:
+    push %r12
+    push %r13
+
     # A in %rdi
     # N in %rsi
 
@@ -95,6 +104,9 @@ tDoneWithCells:
     jmp tRowLoop                # go to next row
 
 tDoneWithRows:                  # bye! bye!
+    pop %r13
+    pop %r12
+
     ret
 
 
@@ -102,6 +114,10 @@ tDoneWithRows:                  # bye! bye!
 
 	.globl	reverseColumns
 reverseColumns:
+    push %r12
+    push %r13
+    push %rbx
+
     # A in %rdi
     # N in %rsi
 
@@ -152,6 +168,9 @@ rDoneWithSwap:
     jmp rColLoop
 
 rDoneWithCols:
+    pop %rbx
+    pop %r13
+    pop %r12
 	ret
 
 
